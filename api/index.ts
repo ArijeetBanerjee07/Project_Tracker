@@ -24,5 +24,6 @@ app.use(async (_req, _res, next) => {
 });
 
 app.use('/api', apiRouter);
+app.use(apiRouter);
 
 export default app;

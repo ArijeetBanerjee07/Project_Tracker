@@ -9,5 +9,5 @@
     "noEmit": true,
     "strict": false
   },
-  "include": ["server/**/*.ts"]
+  "include": ["server/**/*.ts", "api/**/*.ts"]
 }

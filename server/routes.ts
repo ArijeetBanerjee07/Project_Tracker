@@ -3,15 +3,23 @@ import { getPool, memoryStore, getDbStatus } from './db.js';
 
 export const apiRouter = Router();
 
-// Helper to map DB row to Project object
+// Helper to map DB row to Project object with both frontend schema and DB aliases
 function mapRowToProject(row: any) {
+  const totalAmount = Number(row.total_amount_paise);
+  const ownership = row.assigned_to;
+  const institute = row.client_name;
   return {
     id: row.id,
     title: row.title,
-    clientName: row.client_name,
+    // Frontend primary properties
+    institute,
+    ownership,
+    totalAmount,
+    // Aliases for compatibility
+    clientName: institute,
+    assignedTo: ownership,
+    totalAmountPaise: totalAmount,
     description: row.description || undefined,
-    assignedTo: row.assigned_to,
-    totalAmountPaise: Number(row.total_amount_paise),
     advancePercent: Number(row.advance_percent),
     mySharePercent: Number(row.my_share_percent),
     startDate: row.start_date,
@@ -101,13 +109,17 @@ apiRouter.post('/projects', async (req: Request, res: Response) => {
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
         ) RETURNING *;
       `;
+      const clientName = body.institute || body.clientName || 'Unknown Client';
+      const assignedTo = body.ownership || body.assignedTo || 'arijeet';
+      const totalAmountPaise = Number(body.totalAmount ?? body.totalAmountPaise ?? 0);
+
       const values = [
         id,
         body.title,
-        body.clientName,
+        clientName,
         body.description || null,
-        body.assignedTo,
-        body.totalAmountPaise,
+        assignedTo,
+        totalAmountPaise,
         body.advancePercent ?? 50,
         body.mySharePercent ?? 50,
         body.startDate,
@@ -124,9 +136,18 @@ apiRouter.post('/projects', async (req: Request, res: Response) => {
       const result = await pool.query(query, values);
       return res.status(201).json(mapRowToProject(result.rows[0]));
     } else {
+      const clientName = body.institute || body.clientName || 'Unknown Client';
+      const assignedTo = body.ownership || body.assignedTo || 'arijeet';
+      const totalAmount = Number(body.totalAmount ?? body.totalAmountPaise ?? 0);
       const newProj = {
         ...body,
         id,
+        institute: clientName,
+        clientName,
+        ownership: assignedTo,
+        assignedTo,
+        totalAmount,
+        totalAmountPaise: totalAmount,
         createdAt: now,
         updatedAt: now,
       };
@@ -178,13 +199,34 @@ apiRouter.put('/projects/:id', async (req: Request, res: Response) => {
         RETURNING *;
       `;
 
+      const resolvedClientName =
+        updates.clientName !== undefined
+          ? updates.clientName
+          : updates.institute !== undefined
+          ? updates.institute
+          : current.client_name;
+
+      const resolvedAssignedTo =
+        updates.assignedTo !== undefined
+          ? updates.assignedTo
+          : updates.ownership !== undefined
+          ? updates.ownership
+          : current.assigned_to;
+
+      const resolvedTotalAmount =
+        updates.totalAmountPaise !== undefined
+          ? Number(updates.totalAmountPaise)
+          : updates.totalAmount !== undefined
+          ? Number(updates.totalAmount)
+          : Number(current.total_amount_paise);
+
       const values = [
         id,
         updates.title !== undefined ? updates.title : current.title,
-        updates.clientName !== undefined ? updates.clientName : current.client_name,
+        resolvedClientName,
         updates.description !== undefined ? updates.description : current.description,
-        updates.assignedTo !== undefined ? updates.assignedTo : current.assigned_to,
-        updates.totalAmountPaise !== undefined ? updates.totalAmountPaise : current.total_amount_paise,
+        resolvedAssignedTo,
+        resolvedTotalAmount,
         updates.advancePercent !== undefined ? updates.advancePercent : current.advance_percent,
         updates.mySharePercent !== undefined ? updates.mySharePercent : current.my_share_percent,
         updates.startDate !== undefined ? updates.startDate : current.start_date,
@@ -203,9 +245,34 @@ apiRouter.put('/projects/:id', async (req: Request, res: Response) => {
     } else {
       const existing = memoryStore.projects.get(id);
       if (!existing) return res.status(404).json({ error: 'Project not found' });
+      const resolvedClientName =
+        updates.clientName !== undefined
+          ? updates.clientName
+          : updates.institute !== undefined
+          ? updates.institute
+          : existing.clientName || existing.institute;
+      const resolvedAssignedTo =
+        updates.assignedTo !== undefined
+          ? updates.assignedTo
+          : updates.ownership !== undefined
+          ? updates.ownership
+          : existing.assignedTo || existing.ownership;
+      const resolvedTotalAmount =
+        updates.totalAmountPaise !== undefined
+          ? Number(updates.totalAmountPaise)
+          : updates.totalAmount !== undefined
+          ? Number(updates.totalAmount)
+          : existing.totalAmountPaise || existing.totalAmount;
+
       const updated = {
         ...existing,
         ...updates,
+        institute: resolvedClientName,
+        clientName: resolvedClientName,
+        ownership: resolvedAssignedTo,
+        assignedTo: resolvedAssignedTo,
+        totalAmount: resolvedTotalAmount,
+        totalAmountPaise: resolvedTotalAmount,
         updatedAt: now,
       };
       memoryStore.projects.set(id, updated);
