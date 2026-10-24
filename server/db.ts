@@ -5,9 +5,17 @@ dotenv.config();
 
 const { Pool } = pg;
 
-export const databaseUrl =
-  process.env.DATABASE_URL ||
-  'postgresql://postgres:postgres@localhost:5432/project_tracker';
+export function getDatabaseUrl(): string {
+  return (
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING ||
+    'postgresql://postgres:postgres@localhost:5432/project_tracker'
+  );
+}
+
+export const databaseUrl = getDatabaseUrl();
 
 let pool: pg.Pool | null = null;
 let isConnected = false;
@@ -24,17 +32,14 @@ const memoryStore = {
 };
 
 export function getPool(): pg.Pool {
+  const connString = getDatabaseUrl();
+  const isRemote =
+    !connString.includes('localhost') && !connString.includes('127.0.0.1');
+
   if (!pool) {
     pool = new Pool({
-      connectionString: databaseUrl,
-      ssl:
-        process.env.DATABASE_URL &&
-        (process.env.DATABASE_URL.includes('supabase') ||
-          process.env.DATABASE_URL.includes('neon') ||
-          process.env.DATABASE_URL.includes('render') ||
-          process.env.DATABASE_URL.includes('sslmode=require'))
-          ? { rejectUnauthorized: false }
-          : undefined,
+      connectionString: connString,
+      ssl: isRemote ? { rejectUnauthorized: false } : undefined,
       connectionTimeoutMillis: 5000,
     });
 
@@ -103,19 +108,19 @@ export async function initDb(): Promise<boolean> {
 }
 
 export async function getDbStatus() {
-  if (pool) {
-    try {
-      const res = await pool.query('SELECT 1 as connected');
-      isConnected = res.rows.length > 0;
-      lastError = null;
-    } catch (err: any) {
-      isConnected = false;
-      lastError = err.message;
-    }
+  const connString = getDatabaseUrl();
+  const p = getPool();
+  try {
+    const res = await p.query('SELECT 1 as connected');
+    isConnected = res.rows.length > 0;
+    lastError = null;
+  } catch (err: any) {
+    isConnected = false;
+    lastError = err.message;
   }
   return {
     connected: isConnected,
-    databaseUrl: databaseUrl.replace(/:[^:]*@/, ':****@'),
+    databaseUrl: connString.replace(/:[^:]*@/, ':****@'),
     error: lastError,
   };
 }
