@@ -1,59 +1,77 @@
 # Project Tracker (PWA)
 
-A lightweight, minimal, fast, and local-first project and payment tracker designed for phone and desktop.
+A minimal, fast, multi-user project and payment milestone tracker designed for desktop and mobile. Built with **React 19 + TypeScript + Vite + PostgreSQL (Neon)**.
 
-Built with **Vite + React + TypeScript + Dexie (IndexedDB)**. No UI libraries, no Tailwind, zero tracking or third-party dependencies.
-
----
-
-## Features
-
-- **Three Dedicated Views**:
-  - **Arijeet**: Individual projects and assignments for Arijeet with tailored financial summaries and milestone trackers.
-  - **Shared (Middle Tab)**: Joint assignments split proportionally between Arijeet & Priya, with isolated revenue division cards.
-  - **Priya**: Individual projects and assignments for Priya with tailored financial summaries and milestone trackers.
-- **PostgreSQL & Multi-User Live Sync**:
-  - Express + PostgreSQL backend synchronizes all assignments, shared projects, and milestone payment updates in real-time between Arijeet and Priya across their devices.
-  - Fast automatic background polling and window-focus sync so Priya and Arijeet always see each other's updates immediately.
-- **Milestone Payment Tracking**: Tracks 50% advance and 50% balance (or custom advance percentages), marking advance received and balance received with timestamps.
-- **Integer Paise Storage**: All financial calculations are stored strictly as integer paise with odd-paise rounding guarantees (`advance + balance === total`). Formatted using Indian digit grouping (`₹1,00,000`).
-- **PWA Ready**: Add to your phone's Home Screen with clean mobile-responsive layout.
-- **JSON Data Portability**: Single-click export and import of all records for migration or backup.
-- **Clean Architecture**: State & storage abstracted behind `IProjectRepository`, with unified `ApiProjectRepository` and `DexieProjectRepository` options.
-- **Light & Dark Theme**: Toggle anytime via top navbar icon or Settings dialog. Conforms to system preference by default.
+🔗 **Live Production Deployment**: [https://project-tracker-seven-phi.vercel.app/](https://project-tracker-seven-phi.vercel.app/)
 
 ---
 
-## How to Run
+## 🔐 Access Credentials
 
-### 1. Install Dependencies
+To access the workspace on any device:
+* **Username**: `Ariya0703`
+* **Password**: `aripriya`
+
+---
+
+## ✨ Features
+
+- **🌐 Live Cloud Database (Neon PostgreSQL)**:
+  - Real-time synchronization across devices so **Arijeet** and **Priya** both see immediate live updates for projects, deadlines, and milestone payments.
+  - Automatic background polling and window-focus sync keep both partners synchronized anywhere.
+- **👥 Three Dedicated Workspaces**:
+  - **Arijeet**: Individual client assignments and financial summary for Arijeet.
+  - **Shared (Middle Tab)**: Joint projects with automated proportional revenue division (e.g. 50/50 split), isolated cards, and combined milestone summaries.
+  - **Priya**: Individual client assignments and financial summary for Priya.
+- **💰 Milestone Payment Tracking**:
+  - Supports advance & balance payments (default 50% / 50% or custom split percentages).
+  - Checkbox toggles with receipt date tracking for both advance and final balance payments.
+- **🔢 Strict Integer Paise Accounting**:
+  - All financial calculations are stored strictly as integer paise with odd-paise rounding guarantees (`advance + balance === total`).
+  - Standard Indian numbering format display (`₹1,50,000`).
+- **📅 Custom Calendar Picker**:
+  - Bespoke, dark/light theme-aware calendar dropdown with month navigation and quick-date shortcuts (Today, Tomorrow, 1 Week, 1 Month) instead of native browser popups.
+- **🎨 Custom Design System**:
+  - Handcrafted CSS design tokens, custom select dropdowns, and smooth micro-animations.
+  - **Light & Dark Mode**: Easily toggled via the navbar sun/moon icon or the settings modal. Conforms to system preference by default.
+- **📱 PWA & Mobile-First Layout**:
+  - Fully responsive on iPhone, Android, tablets, and desktops.
+  - Can be added directly to mobile Home Screen for a native app feel.
+- **📦 Data Portability**:
+  - One-click export and import of all projects and settings in JSON format for backups and migrations.
+
+---
+
+## 🚀 Quick Start (Local Development)
+
+### 1. Clone & Install Dependencies
 ```bash
+git clone https://github.com/ArijeetBanerjee07/Project_Tracker.git
+cd Project_Tracker
 npm install
 ```
 
-### 2. Configure PostgreSQL (in `.env`)
-You can use a local PostgreSQL instance:
+### 2. Configure Environment (`.env`)
+Create or edit `.env` in the root folder:
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/project_tracker
-```
-Or a free hosted PostgreSQL database (e.g. Supabase, Neon, Render, Railway) so Arijeet and Priya can sync anywhere across different phones and computers:
-```env
-DATABASE_URL=postgresql://postgres.xxxx:your_password@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+DATABASE_URL=postgresql://neondb_owner:npg_VD4zrc6EQMfO@ep-shy-feather-b4v4razc-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+PORT=3001
 ```
 
-### 3. Run Frontend & Backend Together
+### 3. Run Development Server
 ```bash
+# Run both backend API & Vite frontend concurrently:
 npm run dev:all
 ```
-* **Frontend**: `http://localhost:5173`
-* **API Backend**: `http://localhost:3001` (proxied automatically via `/api`)
+* **Frontend UI**: [http://127.0.0.1:5173](http://127.0.0.1:5173)
+* **Backend API**: [http://127.0.0.1:3001](http://127.0.0.1:3001)
 
-Or run them individually:
+Or start each separately:
 ```bash
-# In terminal 1 (backend):
+# Terminal 1: Backend Express Server
 npm run server
 
-# In terminal 2 (frontend):
+# Terminal 2: Vite Dev Server
 npm run dev
 ```
 
@@ -61,50 +79,40 @@ npm run dev
 ```bash
 npm test
 ```
-Runs Vitest tests covering 50/50 splits, odd amounts rounding, shared revenue division, and overdue logic.
+Runs 14 Vitest test cases validating revenue splits, odd-paise rounding arithmetic, shared revenue division, and overdue calculation logic.
 
 ---
 
-## How to Build for Production
+## 🛠️ Build for Production
 
 ```bash
 npm run build
 ```
-The compiled, production-ready static assets will be in the `dist/` directory.
-
-To preview the production build locally:
-```bash
-npm run preview
-```
+Generates production assets in `dist/`.
 
 ---
 
-## How to Install on a Phone (PWA)
+## ☁️ Deployment (Vercel)
 
-1. **Host or Expose the App**:
-   - Host the `dist/` build on any static hosting (such as Cloudflare Pages, Vercel, Netlify, or your local LAN using `npm run dev -- --host`).
-2. **On iPhone (Safari)**:
-   - Open the app URL in Safari.
-   - Tap the **Share** button (box with an arrow pointing up) at the bottom.
-   - Scroll down and tap **"Add to Home Screen"**.
-   - Tap **Add**. The app will now launch full-screen like a native app and operate offline.
-3. **On Android (Chrome / Brave)**:
-   - Open the app URL in Chrome.
-   - Tap the three dots menu in the top right.
-   - Tap **"Add to Home Screen"** or **"Install app"**.
-   - Tap **Install**.
+The application is configured for deployment on Vercel using `vercel.json` and `/api` serverless functions.
+
+1. Import repository on [Vercel](https://vercel.com).
+2. In **Project Settings** &rarr; **Environment Variables**, add:
+   - `DATABASE_URL`: `postgresql://neondb_owner:npg_VD4zrc6EQMfO@ep-shy-feather-b4v4razc-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+3. Deploy!
+
+Live link: [https://project-tracker-seven-phi.vercel.app/](https://project-tracker-seven-phi.vercel.app/)
 
 ---
 
-## How to Export & Import Data (Backup / Migration)
+## 📲 Install as PWA on Mobile
 
-### Export Data
-1. Click or tap the **Settings** gear icon in the top right corner.
-2. Under **Local Storage & Data Portability**, click **"↓ Export JSON Backup"**.
-3. A file named `project_tracker_backup_YYYY-MM-DD.json` will be saved to your device.
+### On iOS (Safari):
+1. Open [https://project-tracker-seven-phi.vercel.app/](https://project-tracker-seven-phi.vercel.app/) in Safari.
+2. Tap the **Share** button (square with arrow pointing up).
+3. Tap **Add to Home Screen**, then tap **Add**.
 
-### Import Data
-1. Click the **Settings** gear icon.
-2. Click **"↑ Import JSON Backup"** and select your `.json` backup file.
-3. A confirmation dialog will appear warning that importing will replace local records.
-4. Click **"Yes, Overwrite & Import"**. The app will immediately load the restored projects and settings.
+### On Android (Chrome / Brave):
+1. Open [https://project-tracker-seven-phi.vercel.app/](https://project-tracker-seven-phi.vercel.app/) in Chrome.
+2. Tap the three-dot menu in the upper-right corner.
+3. Tap **Add to Home Screen** or **Install App**.
