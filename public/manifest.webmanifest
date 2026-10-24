@@ -1,0 +1,18 @@
+{
+  "name": "Project Tracker",
+  "short_name": "Tracker",
+  "description": "Minimal, fast local-first project and payment tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F7F5",
+  "theme_color": "#2F5D50",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
